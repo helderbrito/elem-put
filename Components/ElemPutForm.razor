@@ -1,0 +1,179 @@
+﻿@page "/elempusform"
+@using ElemPut.Models
+
+@code {
+    [Parameter] public ElemPutModel Model { get; set; }
+
+    protected override void OnInitialized()
+    {
+    }
+}
+
+<div class="container">
+    @if (Model?.Form != null)
+    {
+        <EditForm Model="@Model">
+            <DataAnnotationsValidator />
+            @foreach (var row in Model.Form)
+            {
+                <div class="row">
+                    @foreach (var element in row.Elements)
+                    {
+                        <div class="col-md-@element.Size">
+                            @RenderElement(element)
+                        </div>
+                    }
+                </div>
+            }
+        </EditForm>
+    }
+</div>
+
+@code {
+    private RenderFragment RenderElement(FormElement element) => builder =>
+    {
+        switch (element.Type)
+        {
+            case "text":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-group");
+                builder.OpenElement(2, "label");
+                builder.AddAttribute(3, "for", element.Key);
+                builder.AddContent(4, element.Options.Label);
+                builder.CloseElement();
+                builder.OpenElement(5, "input");
+                builder.AddAttribute(6, "type", "text");
+                builder.AddAttribute(7, "name", element.Key);
+                builder.AddAttribute(8, "class", "form-control");
+                builder.AddAttribute(9, "placeholder", element.Options.Placeholder);
+                builder.AddAttribute(10, "pattern", element.Options.Pattern);
+                builder.AddAttribute(11, "style", element.Options.Style);
+                builder.AddAttribute(12, "disabled", element.Options.Disabled);
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+
+            case "checkbox":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-check");
+                builder.OpenElement(2, "input");
+                builder.AddAttribute(3, "type", "checkbox");
+                builder.AddAttribute(4, "name", element.Key);
+                builder.AddAttribute(5, "class", "form-check-input");
+                builder.AddAttribute(6, "disabled", element.Options.Disabled);
+                builder.CloseElement();
+                builder.OpenElement(7, "label");
+                builder.AddAttribute(8, "class", "form-check-label");
+                builder.AddAttribute(9, "for", element.Key);
+                builder.AddContent(10, element.Options.Label);
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+
+            case "radio":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-check");
+                builder.OpenElement(2, "input");
+                builder.AddAttribute(3, "type", "radio");
+                builder.AddAttribute(4, "name", element.Key);
+                builder.AddAttribute(5, "class", "form-check-input");
+                builder.AddAttribute(6, "value", element.Options.Label);
+                builder.AddAttribute(7, "disabled", element.Options.Disabled);
+                builder.CloseElement();
+                builder.OpenElement(8, "label");
+                builder.AddAttribute(9, "class", "form-check-label");
+                builder.AddAttribute(10, "for", element.Key);
+                builder.AddContent(11, element.Options.Label);
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+
+            case "textarea":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-group");
+                builder.OpenElement(2, "label");
+                builder.AddAttribute(3, "for", element.Key);
+                builder.AddContent(4, element.Options.Label);
+                builder.CloseElement();
+                builder.OpenElement(5, "textarea");
+                builder.AddAttribute(6, "name", element.Key);
+                builder.AddAttribute(7, "class", "form-control");
+                builder.AddAttribute(8, "rows", element.Options.Rows);
+                builder.AddAttribute(9, "placeholder", element.Options.Placeholder);
+                builder.AddAttribute(10, "style", element.Options.Style);
+                builder.AddAttribute(11, "disabled", element.Options.Disabled);
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+
+            case "select":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-group");
+                builder.OpenElement(2, "label");
+                builder.AddAttribute(3, "for", element.Key);
+                builder.AddContent(4, element.Options.Label);
+                builder.CloseElement();
+                builder.OpenElement(5, "select");
+                builder.AddAttribute(6, "name", element.Key);
+                builder.AddAttribute(7, "class", "form-control");
+                builder.AddAttribute(8, "style", element.Options.Style);
+                builder.AddAttribute(9, "disabled", element.Options.Disabled);
+                foreach (var option in element.Options.Data)
+                {
+                    builder.OpenElement(10, "option");
+                    builder.AddContent(11, option);
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+
+            case "file":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-group");
+                builder.OpenElement(2, "label");
+                builder.AddAttribute(3, "for", element.Key);
+                builder.AddContent(4, element.Options.Label);
+                builder.CloseElement();
+                builder.OpenElement(5, "input");
+                builder.AddAttribute(6, "type", "file");
+                builder.AddAttribute(7, "name", element.Key);
+                builder.AddAttribute(8, "class", "form-control-file");
+                builder.AddAttribute(9, "style", element.Options.Style);
+                builder.AddAttribute(10, "disabled", element.Options.Disabled);
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+
+            case "button":
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "form-group");
+                builder.OpenElement(2, "button");
+                builder.AddAttribute(3, "type", "button");
+                builder.AddAttribute(4, "class", $"btn btn-{element.Options.Style}");
+                builder.AddAttribute(5, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => InvokeAsync(() => OnButtonClick(element))));
+                builder.AddContent(6, element.Options.Label);
+                builder.CloseElement();
+                builder.CloseElement();
+                break;
+        }
+    };
+
+    private Task OnButtonClick(FormElement element)
+    {
+        if (element.Options.Label == "Validate")
+        {
+            ValidateForm();
+        }
+        else if (element.Options.Label == "Test Button")
+        {
+            Console.WriteLine("Test Button Clicked!");
+        }
+        return Task.CompletedTask;
+    }
+
+    private void ValidateForm()
+    {
+        Console.WriteLine("Form validated!");
+    }
+}
