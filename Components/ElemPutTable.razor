@@ -1,0 +1,70 @@
+﻿@page "/elempusTable"
+@using ElemPut.Models
+@inject HttpClient HttpClient
+
+<div class="container">
+    @if (TableData == null || !TableData.Body.Any())
+    {
+        <p><em>No data available.</em></p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    @foreach (var header in TableData.Body.FirstOrDefault()?.Keys ?? Enumerable.Empty<string>())
+                    {
+                        <th>@header</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in TableData.GetCurrentPageData())
+                {
+                    <tr>
+                        @foreach (var cell in row.Values)
+                        {
+                            <td>@cell</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <button @onclick="PrevPage" disabled="@(!HasPrevPage)">Previous</button>
+            <span>Page @TableData.CurrentPage of @TableData.TotalPages</span>
+            <button @onclick="NextPage" disabled="@(!HasNextPage)">Next</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Table TableData { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPageChanged { get; set; }
+
+    private bool HasPrevPage => TableData.CurrentPage > 1;
+    private bool HasNextPage => TableData.CurrentPage < TableData.TotalPages;
+
+    private async Task PrevPage()
+    {
+        if (HasPrevPage)
+        {
+            await OnPageChanged.InvokeAsync(TableData.CurrentPage - 1);
+            StateHasChanged();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (HasNextPage)
+        {
+            await OnPageChanged.InvokeAsync(TableData.CurrentPage + 1);
+            StateHasChanged();
+        }
+    }
+
+}
